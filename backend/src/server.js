@@ -27,13 +27,39 @@ const frontendDistPath = path.join(__dirname, '../..', 'frontend', 'dist');
 const app = express();
 const httpServer = createServer(app);
 
+const rawClientUrls = process.env.CLIENT_URL || process.env.CLIENT_URLS || '';
+const allowedOrigins = rawClientUrls
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.length === 0) {
+      return callback(null, true);
+    }
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'), false);
+  },
+};
+
 const io = new Server(httpServer, {
-  cors: { origin: process.env.CLIENT_URL, methods: ['GET', 'POST'] },
+  cors: {
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error('Not allowed by CORS'), false);
+    },
+    methods: ['GET', 'POST'],
+  },
 });
 
 app.set('io', io);
 
-app.use(cors({ origin: process.env.CLIENT_URL }));
+app.use(cors(corsOptions));
 app.use(express.json());
 
 if (fs.existsSync(frontendDistPath)) {
