@@ -23,3 +23,5 @@ node_modules/.vite/
 
 # IDE files
 .vscode/
+.vercel
+.env*.local

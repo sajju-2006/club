@@ -33,7 +33,8 @@ const io = new Server(httpServer, {
 
 app.set('io', io);
 
-app.use(cors({ origin: process.env.CLIENT_URL }));
+const corsOptions = process.env.CLIENT_URL ? { origin: process.env.CLIENT_URL } : {};
+app.use(cors(corsOptions));
 app.use(express.json());
 
 if (fs.existsSync(frontendDistPath)) {
